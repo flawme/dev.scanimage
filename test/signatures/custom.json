@@ -1,0 +1,6 @@
+{
+  "signatures": {
+    "test_pattern": "TEST",
+    "custom_hex": "\\xDE\\xAD\\xBE\\xEF"
+  }
+}

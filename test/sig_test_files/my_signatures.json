@@ -1,0 +1,6 @@
+{
+  "signatures": {
+    "my_marker": "CUSTOM_MARKER",
+    "hex_pattern": "\\xCA\\xFE\\xBA\\xBE"
+  }
+}

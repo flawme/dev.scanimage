@@ -1,0 +1,21 @@
+{
+    "signatures": {
+        "zip_header": "PK\\x03\\x04",
+        "zip_eocd": "PK\\x05\\x06",
+        "rar_header": "Rar!",
+        "7zip_header": "7z\\xBC\\xAF\\x27\\x1C",
+        "elf_header": "\\x7FELF",
+        "exe_header": "MZ",
+        "php_code": "<?php",
+        "php_short": "<?=",
+        "html_tag": "<html",
+        "doctype": "<!DOCTYPE",
+        "script_tag": "<script",
+        "js_uri": "javascript:",
+        "pdf_header": "%PDF-",
+        "shebang_bash": "#!/bin/bash",
+        "shebang_sh": "#!/bin/sh",
+        "shebang_python": "#!/usr/bin/python",
+        "shebang_perl": "#!/usr/bin/perl"
+    }
+}

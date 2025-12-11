@@ -1,0 +1,44 @@
+{
+  "name": "safeimg",
+  "version": "1.5.0",
+  "description": "Secure C++ image scanner for detecting malicious or suspicious images",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "install": "node-gyp rebuild",
+    "build": "node-gyp rebuild",
+    "clean": "node-gyp clean",
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "image",
+    "scanner",
+    "security",
+    "malware",
+    "polyglot",
+    "validation",
+    "native-addon",
+    "c++",
+    "n-api"
+  ],
+  "author": "noreply-mehul",
+  "license": "MIT",
+  "gypfile": true,
+  "dependencies": {
+    "node-addon-api": "^8.2.0",
+    "node-gyp": "^10.3.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}
