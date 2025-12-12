@@ -1,28 +1,40 @@
 # Build artifacts
 build/
 dist/
+bin/
+lib/
 *.o
+*.obj
 *.so
+*.so.*
 *.dylib
 *.dll
 *.lib
 *.a
+*.exe
+*.out
+*.app
 
-# IDEs
+
+# IDEs and Editors
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.DS_Store
+Thumbs.db
+.clangd/
+.vs/
+*.user
+*.suo
 
 # Testing
 *.log
 test_output/
 test/assets/temp_*
+coverage/
+*.gcda
+*.gcno
+gmon.out
 
-# System
-.DS_Store
-Thumbs.db
-
-# Documentation generation
-doxygen/
-site/
