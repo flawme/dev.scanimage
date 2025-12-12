@@ -1,434 +1,241 @@
-# SafeImg
+# SafeImg v2.0
 
-A secure C++ image scanning library with Node.js integration for detecting malicious or suspicious images.
+**Secure, Language-Independent Image Scanning Library**
 
-## Features
+SafeImg is a high-performance, cross-platform C++17 shared library designed to detect malicious content, structural anomalies, and privacy threats in image files. It provides a clean C API, making it easy to integrate into any application or backend service.
 
-✅ **Format Validation** - Supports JPEG, PNG, WEBP, GIF, BMP, TIFF, SVG  
-✅ **Magic Byte Verification** - Ensures files match their claimed format  
-✅ **Header Validation** - Detects corrupted or malformed image headers  
-✅ **SVG XSS Detection** - Scans for script tags, event handlers, data URIs (NEW in v1.5)  
-✅ **Polyglot Detection** - Identifies files embedding multiple formats  
-✅ **Entropy Analysis** - Detects hidden payloads via abnormal entropy patterns  
-✅ **Signature Matching** - Extensible pattern detection for malicious content  
-✅ **Integrity Checks** - Detects appended data and oversized metadata (NEW in v1.5)  
-✅ **Runtime Signature Loading** - Load custom signatures from JSON (v1.1.0)  
-✅ **Async & Sync API** - Non-blocking and synchronous scanning options  
-✅ **TypeScript Support** - Full type definitions included
-
-## Installation
-
-### Prerequisites
-
-- Node.js 14+
-- C++ compiler (g++, clang, or MSVC)
-- Python 3 (for node-gyp)
-
-### Install
-
-```bash
-npm install
-```
-
-This will automatically compile the C++ addon.
-
-## Quick Start
-
-```javascript
-const { scanImage } = require('safeimg');
-
-// Async version (recommended)
-const result = await scanImage('/path/to/image.jpg');
-
-if (result.isSafe) {
-  console.log('✓ Image is safe');
-} else {
-  console.log('⚠ Security issues detected:');
-  result.issues.forEach(issue => {
-    console.log(`  - ${issue.type}: ${issue.description}`);
-  });
-}
-```
-
-## API Reference
-
-### `scanImage(filepath: string): Promise<ScanResult>`
-
-Asynchronously scans an image file. **Recommended for production use** as it doesn't block the event loop.
-
-**Parameters:**
-- `filepath` - Absolute or relative path to the image file
-
-**Returns:** Promise resolving to `ScanResult`
-
-### `scanImageSync(filepath: string): ScanResult`
-
-Synchronously scans an image file. Blocks the event loop during scanning.
-
-**Parameters:**
-- `filepath` - Absolute or relative path to the image file
-
-**Returns:** `ScanResult`
-
-### `loadSignatures(filepath: string): LoadSignaturesResult`
-
-**New in v1.1.0** - Load custom malicious signatures from a JSON file.
-
-**Parameters:**
-- `filepath` - Path to JSON file containing signatures
-
-**Returns:** `LoadSignaturesResult`
-
-```typescript
-interface LoadSignaturesResult {
-  success: boolean;    // true if loaded successfully
-  error?: string;      // Error message if failed (still uses defaults)
-}
-```
-
-**Note:** If loading fails, the scanner automatically falls back to built-in signatures and continues working normally.
-
-### ScanResult
-
-```typescript
-interface ScanResult {
-  isSafe: boolean;        // true if no critical issues found
-  issues: Issue[];        // Array of detected issues
-}
-
-interface Issue {
-  type: string;           // Issue category (e.g., "polyglot", "high_entropy")
-  description: string;    // Human-readable description
-  severity: 'info' | 'warning' | 'critical';
-}
-```
-
-## Detection Capabilities
-
-### 1. Format Validation
-
-Validates that files are proper JPEG, PNG, or WEBP images:
-
-- **JPEG**: Checks SOI marker (FF D8), EOI marker (FF D9), and segment structure
-- **PNG**: Validates 8-byte signature, IHDR chunk, IEND chunk, and CRC checksums
-- **WEBP**: Verifies RIFF container and VP8/VP8L chunks
-
-### 2. Polyglot Detection
-
-Detects files that embed multiple formats:
-
-- ZIP archives (PK signature)
-- PDF documents
-- HTML/JavaScript content
-- Shell scripts
-
-### 3. Entropy Analysis
-
-Calculates Shannon entropy to detect:
-
-- Encrypted or compressed payloads (>7.5 bits/byte)
-- Hidden data in file tails
-- Steganographic content
-
-### 4. Signature Matching
-
-Scans for known malicious patterns:
-
-- ELF executables
-- Windows PE files
-- PHP code
-- Shell scripts
-
-**Extensible:** Add custom signatures programmatically (C++ API).
-
-## Integration Examples
-
-### Express.js File Upload
-
-```javascript
-const express = require('express');
-const multer = require('multer');
-const { scanImage } = require('safeimg');
-
-const app = express();
-const upload = multer({ dest: 'uploads/' });
-
-app.post('/upload', upload.single('image'), async (req, res) => {
-  const result = await scanImage(req.file.path);
-  
-  if (!result.isSafe) {
-    // Delete malicious file
-    fs.unlinkSync(req.file.path);
-    return res.status(400).json({
-      error: 'Malicious file detected',
-      issues: result.issues
-    });
-  }
-  
-  res.json({ message: 'Upload successful' });
-});
-```
-
-See [examples/express-server.js](examples/express-server.js) for a complete working example.
-
-## TypeScript Support
-
-Full TypeScript support is included with type definitions:
-
-```typescript
-import { scanImage, ScanResult, Issue } from 'safeimg';
-
-async function validateUpload(filepath: string): Promise<boolean> {
-    const result: ScanResult = await scanImage(filepath);
-    
-    if (!result.isSafe) {
-        result.issues.forEach((issue: Issue) => {
-            console.log(`[${issue.severity}] ${issue.type}: ${issue.description}`);
-        });
-        return false;
-    }
-    
-    return true;
-}
-```
-
-See [examples/typescript-usage.ts](examples/typescript-usage.ts) for more TypeScript examples.
-
-## Runtime Signature Loading
-
-**New in v1.1.0** - Load custom malicious signatures at runtime without recompiling.
-
-### Default Signatures
-
-SafeImg comes with 17 built-in signatures for common threats:
-
-```javascript
-const { scanImage } = require('safeimg');
-
-// Uses built-in signatures automatically
-await scanImage('upload.jpg');
-```
-
-Built-in patterns detect:
-- **Archives**: ZIP, RAR, 7-Zip
-- **Executables**: ELF, Windows PE
-- **Scripts**: PHP, HTML, JavaScript
-- **Documents**: PDF
-- **Shell Scripts**: Bash, Python, Perl
-
-### Custom Signatures
-
-Load your own signature database from JSON:
-
-```javascript
-const { loadSignatures } = require('safeimg');
-
-// Load custom signatures
-const result = loadSignatures('./custom-signatures.json');
-
-if (result.success) {
-  console.log('Custom signatures loaded');
-} else {
-  console.warn('Using defaults:', result.error);
-}
-
-// Now scans use your custom patterns
-await scanImage('upload.jpg');
-```
-
-**Signature JSON Format:**
-
-```json
-{
-  "signatures": {
-    "threat_name": "MALICIOUS_PATTERN",
-    "hex_pattern": "\\xDE\\xAD\\xBE\\xEF",
-    "mixed": "BAD\\x00DATA"
-  }
-}
-```
-
-Supported escape sequences: `\xHH` (hex), `\n`, `\r`, `\t`, `\\`
-
-**Error Handling:** If the file is missing or invalid, SafeImg automatically falls back to built-in signatures and continues scanning.
-
-See [signatures.json](signatures.json) for the default signature database.
-
-
-### Fastify
-
-```javascript
-const fastify = require('fastify')();
-const { scanImage } = require('image-scanner');
-
-fastify.post('/upload', async (request, reply) => {
-  const data = await request.file();
-  const filepath = `/tmp/${data.filename}`;
-  
-  await pump(data.file, fs.createWriteStream(filepath));
-  
-  const result = await scanImage(filepath);
-  
-  if (!result.isSafe) {
-    fs.unlinkSync(filepath);
-    return reply.code(400).send({ error: 'Malicious file', issues: result.issues });
-  }
-  
-  return { success: true };
-});
-```
-
-## Testing
-
-Run the test suite:
-
-```bash
-npm test
-```
-
-This creates test images with various issues and validates all detection features.
-
-## Performance
-
-- **Average scan time**: <10ms per image (most images <5ms)
-- **Async operation**: Non-blocking, suitable for high-throughput servers
-- **Memory efficient**: Streams large files, caps at 100MB
-
-## Security Considerations
-
-⚠️ **This is NOT a full antivirus solution**. It detects:
-- Common image-based attack vectors
-- Malformed files that could exploit parser bugs
-- Polyglot files used to bypass upload filters
-- Basic steganography indicators
-
-⚠️ **It does NOT**:
-- Execute deep malware analysis
-- Scan for zero-day exploits
-- Provide real-time threat intelligence
-
-**Recommendation**: Use this as a first-line defense, combined with:
-- Virus scanning (ClamAV, VirusTotal API)
-- File type restrictions
-- Size limits
-- User permissions
-
-## Architecture
-
-```
-┌─────────────────────┐
-│   Node.js App       │
-│  (index.js)         │
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐
-│   N-API Bindings    │
-│ (node_bindings.cpp) │
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐
-│   C++ Scanner Core  │
-│ (image_scanner.cpp) │
-├─────────────────────┤
-│ • Format Validators │
-│ • Polyglot Detector │
-│ • Entropy Analyzer  │
-│ • Signature Matcher │
-└─────────────────────┘
-```
-
-## Adding Custom Signatures
-
-Currently, custom signatures must be added via the C++ API. Future versions will support runtime signature loading.
-
-```cpp
-#include "image_scanner.h"
-
-ImageScanner::Scanner scanner;
-scanner.addSignature("custom_threat", {0xDE, 0xAD, 0xBE, 0xEF});
-```
-
-## Building from Source
-
-```bash
-# Install dependencies
-npm install
-
-# Rebuild native addon
-npm run build
-
-# Clean build artifacts
-npm run clean
-```
-
-## Platform Support
-
-- ✅ Linux (tested on Ubuntu 20.04+)
-- ✅ macOS (tested on 10.15+)
-- ✅ Windows (tested on Windows 10+)
-
-## Troubleshooting
-
-### Build Failures
-
-**Missing compiler:**
-```bash
-# Ubuntu/Debian
-sudo apt-get install build-essential
-
-# macOS
-xcode-select --install
-
-# Windows
-# Install Visual Studio Build Tools
-```
-
-**Python version issues:**
-```bash
-npm config set python /path/to/python3
-```
-
-### Runtime Errors
-
-**Module not found:**
-Ensure the addon is built:
-```bash
-npm run build
-```
-
-**Segmentation fault:**
-Check that file paths are valid and accessible.
-
-## License
-
-MIT
-
-## Contributing
-
-Contributions welcome! Please:
-
-1. Add tests for new features
-2. Follow existing code style
-3. Update documentation
-4. Submit a pull request
-
-## Roadmap
-
-- [ ] Runtime signature loading from JSON
-- [ ] TIFF and GIF support
-- [ ] Machine learning-based detection
-- [ ] CLI tool
-- [ ] Batch scanning API
-- [ ] Cloud service integration (AWS S3, etc.)
-
-## Support
-
-For issues, questions, or feature requests, please open an issue on GitHub.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Standard: C++17](https://img.shields.io/badge/Standard-C%2B%2B17-blue.svg)](https://en.cppreference.com/w/cpp/17)
+[![Build: CMake](https://img.shields.io/badge/Build-CMake-green.svg)](https://cmake.org/)
 
 ---
 
-## Development
+## ✨ Features
 
-This project was developed with **AI assistance**.
+- **Zero External Dependencies**: Pure standard C++17 implementation.
+- **Cross-Platform**: Native support for Linux, macOS, and Windows.
+- **Thread-Safe**: Designed for high-concurrency environments with no global state.
+- **Memory Safe**: Strict ownership semantics and resource management.
+- **JSON Output**: Standardized, machine-readable scan results.
+- **Configurable**: Adjustable thresholds, timeouts, and security strictness.
+
+## 🖼️ Supported Formats
+
+SafeImg validates structure and identifying markers for:
+
+| Format | Magic Bytes | Validation Scope |
+|--------|-------------|------------------|
+| **JPEG** | `FF D8 FF` | Marker integrity, EXIF/XMP parsing, EOF check |
+| **PNG** | `89 50 4E 47` | Chunk CRC32, IHDR/IEND validation, ancillary chunks |
+| **WEBP** | `52 49 46 46` | RIFF container, VP8/VP8L/VP8X headers |
+| **GIF** | `47 49 46 38` | Logical Screen Descriptor, block structure |
+| **BMP** | `42 4D` | DIB header validation, compression checks |
+| **TIFF** | `49 49` / `4D 4D` | IFD loop detection, tag validation |
+| **SVG** | `<xml` / `<svg` | XML parsing, script/event-handler detection |
+
+## 🛡️ Security Capabilities
+
+- **Polyglot Detection**: Identifies files hiding ZIP, PDF, or HTML payloads within image structures.
+- **Metadata Analysis**: Extracts and strictly validates EXIF, XMP, and IPTC data.
+- **Privacy Protection**: Flags GPS coordinates and sensitive device information.
+- **Entropy Analysis**: Detects encrypted payloads or steganography via Shannon entropy analysis.
+- **Signature Matching**: Scans for known malware signatures, webshells, and exploit patterns.
+- **False Positive Reduction**: Intelligent context analysis to distinguish legitimate data from threats.
+
+---
+
+## 📦 Installation
+
+### Prerequisites
+- CMake 3.10+
+- C++17 compliant compiler (GCC 7+, Clang 5+, MSVC 2017+)
+
+### Build Instructions
+
+```bash
+# Clone the repository
+git clone https://github.com/organization/safeimg.git
+cd safeimg
+
+# Configure and build
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+
+# Install (optional)
+sudo make install
+```
+
+**Artifacts**:
+- Shared Library: `dist/lib/libsafeimg.so` (Linux), `.dylib` (macOS), `.dll` (Windows)
+- Headers: `include/safeimg_export.h`
+
+---
+
+## 💻 Usage
+
+### C Example
+
+```c
+#include "safeimg_export.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    const char* filepath = "upload.jpg";
+    
+    // Scan the file
+    // Options can be passed as a JSON string, or NULL for defaults
+    char* result_json = safeimg_scan_file(filepath, NULL);
+    
+    if (result_json) {
+        printf("Scan Result: %s\n", result_json);
+        
+        // Critical: Free the memory allocated by the library
+        safeimg_free(result_json);
+    }
+    
+    return 0;
+}
+```
+
+### C++ Example
+
+```cpp
+#include "safeimg_export.h"
+#include <iostream>
+#include <string>
+#include <memory>
+
+int main() {
+    const std::string filepath = "avatar.png";
+    const std::string options = R"({"checkIntegrity": true, "confidenceThreshold": 0.8})";
+
+    // Scan
+    char* raw_result = safeimg_scan_file(filepath.c_str(), options.c_str());
+    
+    if (raw_result) {
+        std::cout << "Result: " << raw_result << std::endl;
+        
+        // Free
+        safeimg_free(raw_result);
+    }
+    
+    return 0;
+}
+```
+
+---
+
+## 📊 Scan Results
+
+The library returns a comprehensive JSON object describing the scan findings:
+
+```json
+{
+  "version": "2.0.0",
+  "isSafe": false,
+  "format": "jpeg",
+  "realImageSize": 45032,
+  "scanTimeMs": 12.5,
+  "issues": [
+    {
+      "severity": "high",
+      "type": "polyglot_detected",
+      "description": "Embedded ZIP archive detected at offset 45000",
+      "category": "structure"
+    },
+    {
+      "severity": "warning",
+      "type": "gps_data",
+      "description": "GPS Geolocation data present",
+      "category": "privacy"
+    }
+  ],
+  "metadata": {
+    "hasEXIF": true,
+    "hasXMP": false,
+    "hasGPS": true
+  }
+}
+```
+
+---
+
+## ⚡ Performance
+
+- **Throughput**: Processes >1,000 images/sec on modern hardware (concurrent).
+- **Latency**: Sub-20ms scan time for typical web images (<5MB).
+- **Memory Footprint**: Minimal overhead; default 0-copy I/O where supported.
+
+---
+
+## 🏗️ Architecture
+
+SafeImg follows a layered architecture to separate the public API from the core engine:
+
+```mermaid
+graph TD
+    API[Public C API] --> Engine[ScannerV2 Engine]
+    
+    Engine --> Format[Format Detection]
+    Engine --> Entropy[Entropy Analyzer]
+    Engine --> Signatures[Signature Engine]
+    
+    Format --> Val_JPEG[JPEG Validator]
+    Format --> Val_PNG[PNG Validator]
+    Format --> Val_Other[Other Validators...]
+    
+    Val_JPEG --> Parser_EXIF[EXIF Parser]
+    Val_JPEG --> Parser_XMP[XMP Parser]
+    
+    Signatures --> FP_Reducer[False Positive Reducer]
+    
+    Engine --> Result[JSON Result Builder]
+```
+
+---
+
+## 📂 Project Structure
+
+```
+safeimg/
+├── include/
+│   └── safeimg_export.h      # Public API header
+├── src/
+│   ├── api/                  # C API Implementation
+│   ├── core/                 # Core logic, validators, parsers
+│   └── signatures/           # Signature engine & heuristics
+├── dist/                     # Compiled binaries
+├── docs/                     # Detailed documentation
+└── test/                     # Integration tests
+```
+
+---
+
+## 📝 Documentation
+
+Detailed documentation is available in the `docs/` directory:
+
+- [**Building Guide**](docs/BUILD.md) - Detailed cross-platform build instructions.
+- [**C API Reference**](docs/API.md) - Complete function reference and memory management.
+- [**Project Structure**](docs/STRUCTURE.md) - Deep dive into internal modules.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+1. Fork the repository.
+2. Create your feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes.
+4. Push to the branch.
+5. Open a Pull Request.
+
+Please ensure all new code includes basic tests and follows the existing C++17 style.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

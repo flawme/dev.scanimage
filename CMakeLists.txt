@@ -13,42 +13,43 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/dist/lib)
 # Platform-specific settings
 if(WIN32)
     add_compile_definitions(SAFEIMG_EXPORTS)
-    # Enable exceptions on Windows
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 else()
-    # Unix: export symbols with visibility
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/include/internal)
 
 # SafeImg shared library source files
 set(SAFEIMG_SOURCES
     # C API wrapper
-    src/safeimg_export.cpp
+    src/api/safeimg_export.cpp
     
     # Core engine
-    src/image_scanner.cpp
-    src/scanner_v2.cpp
-    src/scan_result_v2.cpp
-    src/file_io.cpp
-    src/entropy_analyzer.cpp
+    src/core/image_scanner.cpp
+    src/core/scanner_v2.cpp
+    src/core/scan_result_v2.cpp
+    src/core/file_io.cpp
+    src/core/entropy_analyzer.cpp
+    
+    # EXIF/XMP parsers
+    src/core/exif_parser.cpp
+    src/core/xmp_parser.cpp
     
     # Validators
-    src/validators/jpeg_validator.cpp
-    src/validators/png_validator.cpp
-    src/validators/webp_validator.cpp
-    src/validators/gif_validator.cpp
-    src/validators/bmp_validator.cpp
-    src/validators/tiff_validator.cpp
-    src/validators/svg_validator.cpp
+    src/core/validators/jpeg_validator.cpp
+    src/core/validators/png_validator.cpp
+    src/core/validators/webp_validator.cpp
+    src/core/validators/gif_validator.cpp
+    src/core/validators/bmp_validator.cpp
+    src/core/validators/tiff_validator.cpp
+    src/core/validators/svg_validator.cpp
     
-    # Metadata parsers
-    src/metadata/exif_parser.cpp
-    src/metadata/xmp_parser.cpp
-    src/metadata/signature_engine_v2.cpp
-    src/metadata/false_positive_reducer.cpp
+    # Signature systems
+    src/signatures/signature_engine_v2.cpp
+    src/signatures/false_positive_reducer.cpp
 )
 
 # Create shared library
@@ -88,14 +89,13 @@ install(TARGETS safeimg
     PUBLIC_HEADER DESTINATION include
 )
 
-# Install additional headers (optional)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/
-    DESTINATION include/safeimg
-    FILES_MATCHING PATTERN "*.h"
-)
-
 # Print build info
+message(STATUS "====================================")
 message(STATUS "SafeImg v${PROJECT_VERSION}")
-message(STATUS "Building shared library for: ${CMAKE_SYSTEM_NAME}")
-message(STATUS "Output directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
-message(STATUS "C++ standard: C++${CMAKE_CXX_STANDARD}")
+message(STATUS "Language-independent shared library")
+message(STATUS "====================================")
+message(STATUS "Platform: ${CMAKE_SYSTEM_NAME}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "Output: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+message(STATUS "C++ Standard: C++${CMAKE_CXX_STANDARD}")
+message(STATUS "====================================")
