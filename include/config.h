@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <cstddef>
+#include <string>
 
 namespace ImageScanner {
 
@@ -25,6 +26,15 @@ struct ScanOptions {
   // Signature options
   bool enableCustomSignatures; // Enable custom signature loading
   bool mergeWithBuiltin;       // Merge custom + builtin signatures
+  std::string signatureFile;   // Path to v2 signatures JSON
+  bool useSignatureV2;         // Use v2 engine (default: true)
+  bool enableWildcards;        // Enable wildcard matching
+
+  // False-positive reduction
+  bool reduceFalsePositives;    // Enable FP reduction (default: true)
+  float confidenceThreshold;    // Min confidence to report (0.0-1.0)
+  bool adjustSeverity;          // Downgrade low-confidence findings
+  bool whitelistCommonPatterns; // Whitelist known safe patterns
 
   // Analysis toggles
   bool checkPolyglot;   // Check for polyglot files
@@ -41,7 +51,10 @@ struct ScanOptions {
         extractMetadata(true), svgSanitize(true), svgAllowDataURI(false),
         useMmap(true), mmapThreshold(1024 * 1024), // 1MB
         slidingWindowEntropy(true), enableCustomSignatures(true),
-        mergeWithBuiltin(true), checkPolyglot(true), checkEntropy(true),
+        mergeWithBuiltin(true), signatureFile(""), useSignatureV2(true),
+        enableWildcards(true), reduceFalsePositives(true),
+        confidenceThreshold(0.7f), adjustSeverity(true),
+        whitelistCommonPatterns(true), checkPolyglot(true), checkEntropy(true),
         checkIntegrity(true), checkSignatures(true), legacyMode(false) {}
 };
 

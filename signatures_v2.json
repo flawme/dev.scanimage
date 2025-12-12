@@ -1,0 +1,188 @@
+{
+    "version": "2.0",
+    "description": "SafeImg v2.0 Advanced Signature Database",
+    "signatures": [
+        {
+            "name": "php_code",
+            "pattern": "<?php",
+            "type": "exact",
+            "severity": "critical",
+            "category": "script",
+            "description": "PHP code detected in image metadata",
+            "contexts": [
+                "metadata",
+                "comment",
+                "exif",
+                "xmp"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "javascript_code",
+            "pattern": "<script",
+            "type": "exact",
+            "severity": "critical",
+            "category": "script",
+            "description": "JavaScript code detected",
+            "contexts": [
+                "xmp",
+                "svg",
+                "metadata"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "zip_header",
+            "pattern": "PK\\x03\\x04",
+            "type": "exact",
+            "severity": "high",
+            "category": "embedded-file",
+            "description": "ZIP archive embedded in image",
+            "contexts": [
+                "all"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "zip_with_compression",
+            "pattern": "PK\\x03\\x04????{\\x00,\\x08}",
+            "type": "wildcard",
+            "severity": "high",
+            "category": "embedded-file",
+            "description": "ZIP archive with common compression method",
+            "contexts": [
+                "embedded",
+                "appended"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "pdf_header",
+            "pattern": "%PDF-",
+            "type": "exact",
+            "severity": "high",
+            "category": "embedded-file",
+            "description": "PDF document embedded in image",
+            "contexts": [
+                "all"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "elf_executable",
+            "pattern": "\\x7FELF",
+            "type": "exact",
+            "severity": "critical",
+            "category": "embedded-file",
+            "description": "ELF executable (Linux binary) detected",
+            "contexts": [
+                "all"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "pe_executable",
+            "pattern": "MZ",
+            "type": "exact",
+            "severity": "critical",
+            "category": "embedded-file",
+            "description": "Windows PE executable detected",
+            "contexts": [
+                "all"
+            ],
+            "enabled": true,
+            "false_positive_prone": true
+        },
+        {
+            "name": "html_tag",
+            "pattern": "<!DOCTYPE html>",
+            "type": "exact",
+            "severity": "warning",
+            "category": "script",
+            "description": "HTML content detected",
+            "contexts": [
+                "metadata",
+                "comment"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "shell_script",
+            "pattern": "#!/bin/sh",
+            "type": "exact",
+            "severity": "critical",
+            "category": "script",
+            "description": "Shell script detected",
+            "contexts": [
+                "all"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "python_script",
+            "pattern": "#!/usr/bin/python",
+            "type": "exact",
+            "severity": "critical",
+            "category": "script",
+            "description": "Python script detected",
+            "contexts": [
+                "all"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "eval_statement",
+            "pattern": "eval(",
+            "type": "exact",
+            "severity": "high",
+            "category": "script",
+            "description": "Eval statement detected (code injection risk)",
+            "contexts": [
+                "xmp",
+                "metadata",
+                "svg"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        },
+        {
+            "name": "base64_decode",
+            "pattern": "base64_decode",
+            "type": "exact",
+            "severity": "warning",
+            "category": "script",
+            "description": "Base64 decode function detected",
+            "contexts": [
+                "xmp",
+                "metadata"
+            ],
+            "enabled": true,
+            "false_positive_prone": true
+        },
+        {
+            "name": "entity_declaration",
+            "pattern": "<!ENTITY",
+            "type": "exact",
+            "severity": "critical",
+            "category": "xml",
+            "description": "XML entity declaration (XXE risk)",
+            "contexts": [
+                "xml",
+                "xmp",
+                "svg"
+            ],
+            "enabled": true,
+            "false_positive_prone": false
+        }
+    ],
+    "whitelist": []
+}

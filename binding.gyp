@@ -17,7 +17,9 @@
         "src/validators/tiff_validator.cpp",
         "src/validators/svg_validator.cpp",
         "src/metadata/exif_parser.cpp",
-        "src/metadata/xmp_parser.cpp"
+        "src/metadata/xmp_parser.cpp",
+        "src/metadata/signature_engine_v2.cpp",
+        "src/metadata/false_positive_reducer.cpp"
       ],
       "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")",
