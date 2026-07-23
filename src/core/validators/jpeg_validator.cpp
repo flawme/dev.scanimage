@@ -25,7 +25,8 @@ bool JPEGValidator::validateJPEGStructure(const std::vector<uint8_t> &data,
   // Check for EOI marker (FF D9)
   bool hasEOI = false;
   if (data.size() >= 2) {
-    for (size_t i = data.size() - 20; i < data.size() - 1; ++i) {
+    size_t start = data.size() >= 20 ? data.size() - 20 : 0;
+    for (size_t i = start; i < data.size() - 1; ++i) {
       if (data[i] == 0xFF && data[i + 1] == 0xD9) {
         hasEOI = true;
         break;
@@ -42,7 +43,7 @@ bool JPEGValidator::validateJPEGStructure(const std::vector<uint8_t> &data,
 
   // Validate APP markers
   size_t pos = 2; // After SOI
-  while (pos < data.size() - 1 && pos < 1000) {
+  while (pos + 1 < data.size() && pos < 1000) {
     if (data[pos] == 0xFF) {
       uint8_t marker = data[pos + 1];
       if (marker == 0xD9)
@@ -78,11 +79,12 @@ bool JPEGValidator::validateJPEGStructure(const std::vector<uint8_t> &data,
 }
 
 size_t JPEGValidator::findEXIFSegment(const std::vector<uint8_t> &data) {
+  if (data.size() < 10) return std::string::npos;
   // EXIF is in APP1 (FFE1) with "Exif\0\0" identifier
-  for (size_t i = 0; i < data.size() - 10; ++i) {
+  for (size_t i = 0; i <= data.size() - 10; ++i) {
     if (data[i] == 0xFF && data[i + 1] == 0xE1) {
       // Check for "Exif\0\0"
-      if (i + 10 < data.size() && data[i + 4] == 'E' && data[i + 5] == 'x' &&
+      if (i + 9 < data.size() && data[i + 4] == 'E' && data[i + 5] == 'x' &&
           data[i + 6] == 'i' && data[i + 7] == 'f' && data[i + 8] == 0x00 &&
           data[i + 9] == 0x00) {
         return i + 10; // Return offset to TIFF header
@@ -93,12 +95,15 @@ size_t JPEGValidator::findEXIFSegment(const std::vector<uint8_t> &data) {
 }
 
 size_t JPEGValidator::findXMPSegment(const std::vector<uint8_t> &data) {
+  if (data.size() < 35) return std::string::npos;
   // XMP is in APP1 with "http://ns.adobe.com/xap/1.0/\0" identifier
-  for (size_t i = 0; i < data.size() - 35; ++i) {
+  for (size_t i = 0; i <= data.size() - 35; ++i) {
     if (data[i] == 0xFF && data[i + 1] == 0xE1) {
-      std::string identifier(data.begin() + i + 4, data.begin() + i + 33);
-      if (identifier == "http://ns.adobe.com/xap/1.0/") {
-        return i + 33;
+      if (i + 33 <= data.size()) {
+        std::string identifier(data.begin() + i + 4, data.begin() + i + 33);
+        if (identifier == "http://ns.adobe.com/xap/1.0/") {
+          return i + 33;
+        }
       }
     }
   }
@@ -106,8 +111,9 @@ size_t JPEGValidator::findXMPSegment(const std::vector<uint8_t> &data) {
 }
 
 void JPEGValidator::checkTrailingData(const std::vector<uint8_t> &data,
-                                      ScanResultV2 &result,
-                                      const ScanOptions &options) {
+                                       ScanResultV2 &result,
+                                       const ScanOptions &options) {
+  if (data.size() < 2) return;
   // Find last EOI marker
   size_t eofPos = std::string::npos;
   for (size_t i = 0; i < data.size() - 1; ++i) {
@@ -132,7 +138,7 @@ void JPEGValidator::checkTrailingData(const std::vector<uint8_t> &data,
 }
 
 MetadataResult JPEGValidator::extractMetadata(const std::vector<uint8_t> &data,
-                                              const ScanOptions &options) {
+                                               const ScanOptions &options) {
   MetadataResult meta;
 
   // Check for EXIF
@@ -169,14 +175,16 @@ MetadataResult JPEGValidator::extractMetadata(const std::vector<uint8_t> &data,
 
   // Calculate total metadata size from APP segments
   size_t totalMetadata = 0;
-  for (size_t i = 0; i < data.size() - 4; ++i) {
-    if (data[i] == 0xFF) {
-      uint8_t marker = data[i + 1];
-      // APP0-APP15: 0xE0-0xEF, COM: 0xFE
-      if ((marker >= 0xE0 && marker <= 0xEF) || marker == 0xFE) {
-        uint16_t segmentLength = (data[i + 2] << 8) | data[i + 3];
-        totalMetadata += segmentLength;
-        i += segmentLength + 1;
+  if (data.size() >= 4) {
+    for (size_t i = 0; i < data.size() - 4; ++i) {
+      if (data[i] == 0xFF) {
+        uint8_t marker = data[i + 1];
+        // APP0-APP15: 0xE0-0xEF, COM: 0xFE
+        if ((marker >= 0xE0 && marker <= 0xEF) || marker == 0xFE) {
+          uint16_t segmentLength = (data[i + 2] << 8) | data[i + 3];
+          totalMetadata += segmentLength;
+          i += segmentLength + 1;
+        }
       }
     }
   }

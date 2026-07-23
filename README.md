@@ -10,7 +10,7 @@ SafeImg is a high-performance, cross-platform C++17 shared library designed to d
 
 ---
 
-## ✨ Features
+## Features
 
 - **Zero External Dependencies**: Pure standard C++17 implementation.
 - **Cross-Platform**: Native support for Linux, macOS, and Windows.
@@ -19,7 +19,7 @@ SafeImg is a high-performance, cross-platform C++17 shared library designed to d
 - **JSON Output**: Standardized, machine-readable scan results.
 - **Configurable**: Adjustable thresholds, timeouts, and security strictness.
 
-## 🖼️ Supported Formats
+## Supported Formats
 
 SafeImg validates structure and identifying markers for:
 
@@ -33,7 +33,7 @@ SafeImg validates structure and identifying markers for:
 | **TIFF** | `49 49` / `4D 4D` | IFD loop detection, tag validation |
 | **SVG** | `<xml` / `<svg` | XML parsing, script/event-handler detection |
 
-## 🛡️ Security Capabilities
+## Security Capabilities
 
 - **Polyglot Detection**: Identifies files hiding ZIP, PDF, or HTML payloads within image structures.
 - **Metadata Analysis**: Extracts and strictly validates EXIF, XMP, and IPTC data.
@@ -44,7 +44,7 @@ SafeImg validates structure and identifying markers for:
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 - CMake 3.10+
@@ -54,8 +54,8 @@ SafeImg validates structure and identifying markers for:
 
 ```bash
 # Clone the repository
-git clone https://github.com/organization/safeimg.git
-cd safeimg
+git clone https://github.com/flawme/dev.scanimage.git
+cd dev.scanimage
 
 # Configure and build
 mkdir build && cd build
@@ -72,7 +72,7 @@ sudo make install
 
 ---
 
-## 💻 Usage
+## Usage
 
 ### C Example
 
@@ -127,7 +127,7 @@ int main() {
 
 ---
 
-## 📊 Scan Results
+## Scan Results
 
 The library returns a comprehensive JSON object describing the scan findings:
 
@@ -162,7 +162,7 @@ The library returns a comprehensive JSON object describing the scan findings:
 
 ---
 
-## ⚡ Performance
+## Performance
 
 - **Throughput**: Processes >1,000 images/sec on modern hardware (concurrent).
 - **Latency**: Sub-20ms scan time for typical web images (<5MB).
@@ -170,7 +170,7 @@ The library returns a comprehensive JSON object describing the scan findings:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 SafeImg follows a layered architecture to separate the public API from the core engine:
 
@@ -196,7 +196,7 @@ graph TD
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 safeimg/
@@ -213,7 +213,7 @@ safeimg/
 
 ---
 
-## 📝 Documentation
+## Documentation
 
 Detailed documentation is available in the `docs/` directory:
 
@@ -223,7 +223,7 @@ Detailed documentation is available in the `docs/` directory:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome!
 1. Fork the repository.
@@ -236,6 +236,6 @@ Please ensure all new code includes basic tests and follows the existing C++17 s
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
